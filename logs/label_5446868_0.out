@@ -1,0 +1,13 @@
+[env] hostname=blengerichgpu4000
+[env] shard=0 num_shards=10 model=Qwen/Qwen2.5-7B-Instruct
+[env] input=filtered_pairs_10k.jsonl outdir=.
+Python 3.10.14
+torch(base): 2.2.2
+torch(using): 2.2.2
+torch(file): /opt/conda/lib/python3.10/site-packages/torch/__init__.py
+transformers: 4.48.0
+tokenizers: 0.21.4
+TRANSFORMERS_NO_TORCHVISION: 1
+[info] HF_HOME=hf_cache
+[load] model=Qwen/Qwen2.5-7B-Instruct
+[done] shard 0/10 total=21 kept=20 dropped=0

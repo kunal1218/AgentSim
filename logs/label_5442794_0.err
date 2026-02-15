@@ -1,0 +1,30 @@
+INFO:    Converting OCI blobs to SIF format
+INFO:    Starting build...
+INFO:    Fetching OCI image...
+INFO:    Extracting OCI image...
+INFO:    Inserting Apptainer configuration...
+INFO:    Creating SIF file...
+  WARNING: The script httpx is installed in '/home/kdsingh/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts hf and tiny-agents are installed in '/home/kdsingh/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts accelerate, accelerate-config, accelerate-estimate-memory, accelerate-launch and accelerate-merge-weights are installed in '/home/kdsingh/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script transformers is installed in '/home/kdsingh/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+Disabling PyTorch because PyTorch >= 2.4 is required but found 2.2.2
+PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+Traceback (most recent call last):
+  File "/var/lib/condor/execute/slot1/dir_707577/scratch/label_worker.py", line 266, in <module>
+    main()
+  File "/var/lib/condor/execute/slot1/dir_707577/scratch/label_worker.py", line 204, in main
+    model = AutoModelForCausalLM.from_pretrained(
+  File "/home/kdsingh/.local/lib/python3.10/site-packages/transformers/utils/import_utils.py", line 1893, in __getattribute__
+    requires_backends(cls, cls._backends)
+  File "/home/kdsingh/.local/lib/python3.10/site-packages/transformers/utils/import_utils.py", line 1879, in requires_backends
+    raise ImportError("".join(failed))
+ImportError: 
+AutoModelForCausalLM requires the PyTorch library but it was not found in your environment. Check out the instructions on the
+installation page: https://pytorch.org/get-started/locally/ and follow the ones that match your environment.
+Please note that you may need to restart your runtime after installation.
+

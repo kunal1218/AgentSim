@@ -1,0 +1,20 @@
+INFO:    Converting OCI blobs to SIF format
+INFO:    Starting build...
+INFO:    Fetching OCI image...
+INFO:    Extracting OCI image...
+INFO:    Inserting Apptainer configuration...
+INFO:    Creating SIF file...
+Downloading shards:   0%|          | 0/4 [00:00<?, ?it/s]Downloading shards:  25%|██▌       | 1/4 [00:20<01:02, 20.81s/it]Downloading shards:  50%|█████     | 2/4 [00:38<00:37, 18.91s/it]Downloading shards:  75%|███████▌  | 3/4 [00:51<00:16, 16.32s/it]Downloading shards: 100%|██████████| 4/4 [01:06<00:00, 15.61s/it]Downloading shards: 100%|██████████| 4/4 [01:06<00:00, 16.53s/it]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.61it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.62it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.59it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+/var/lib/condor/execute/slot1/dir_772912/scratch/py_pkgs_LS7OWK/transformers/generation/configuration_utils.py:628: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+/var/lib/condor/execute/slot1/dir_772912/scratch/py_pkgs_LS7OWK/transformers/generation/configuration_utils.py:650: UserWarning: `do_sample` is set to `False`. However, `top_k` is set to `20` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_k`.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/var/lib/condor/execute/slot1/dir_772912/scratch/label_worker.py", line 266, in <module>
+    main()
+  File "/var/lib/condor/execute/slot1/dir_772912/scratch/label_worker.py", line 243, in main
+    dist = renormalize_distribution(data.get("intent_distribution", []), args.topk)
+  File "/var/lib/condor/execute/slot1/dir_772912/scratch/label_worker.py", line 73, in renormalize_distribution
+    intent = item.get("intent")
+AttributeError: 'str' object has no attribute 'get'

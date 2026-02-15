@@ -1,0 +1,58 @@
+000 (5445329.000.000) 2026-02-09 17:56:43 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_9001_840b>
+...
+040 (5445329.000.000) 2026-02-09 17:57:10 Started transferring input files
+	Transferring to host: <128.105.69.60:9618?addrs=128.105.69.60-9618+[2607-f388-2200-100-527c-6fff-fe66-e7e2]-9618&alias=blengerichgpu4000.chtc.wisc.edu&noUDP&sock=slot1_1_2862045_5d79_8065>
+...
+040 (5445329.000.000) 2026-02-09 17:57:10 Finished transferring input files
+...
+001 (5445329.000.000) 2026-02-09 17:57:11 Job executing on host: <128.105.69.60:9618?addrs=128.105.69.60-9618+[2607-f388-2200-100-527c-6fff-fe66-e7e2]-9618&alias=blengerichgpu4000.chtc.wisc.edu&noUDP&sock=startd_1168403_da56>
+	SlotName: slot1_1@blengerichgpu4000.chtc.wisc.edu
+	AvailableGPUs = { GPUs_GPU_ca48bd26 }
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_806923/scratch"
+	Cpus = 4
+	Disk = 52428800
+	GPUs = 1
+	GPUs_GPU_ca48bd26 = [ Id = "GPU-ca48bd26"; Capability = 8.9; DeviceName = "NVIDIA L40S"; DeviceUuid = "ca48bd26-8050-1d72-65bb-be9bc1469039"; ECCEnabled = true; NvidiaDriver = "570.195.03"; DriverVersion = 12.8; DevicePciBusId = "0000:17:00.0"; GlobalMemoryMb = 45468; MaxSupportedVersion = 12080 ]
+	IoHeavy = 0
+	Memory = 32768
+...
+006 (5445329.000.000) 2026-02-09 17:57:19 Image size of job updated: 16956
+	17  -  MemoryUsage of job (MB)
+	16956  -  ResidentSetSize of job (KB)
+...
+006 (5445329.000.000) 2026-02-09 18:02:19 Image size of job updated: 5991332
+	858  -  MemoryUsage of job (MB)
+	878100  -  ResidentSetSize of job (KB)
+...
+006 (5445329.000.000) 2026-02-09 18:07:20 Image size of job updated: 5991332
+	859  -  MemoryUsage of job (MB)
+	879236  -  ResidentSetSize of job (KB)
+...
+006 (5445329.000.000) 2026-02-09 18:12:20 Image size of job updated: 5991332
+	860  -  MemoryUsage of job (MB)
+	879808  -  ResidentSetSize of job (KB)
+...
+040 (5445329.000.000) 2026-02-09 18:12:43 Started transferring output files
+...
+040 (5445329.000.000) 2026-02-09 18:12:43 Finished transferring output files
+...
+005 (5445329.000.000) 2026-02-09 18:12:46 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:28:14, Sys 0 00:00:53  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:28:14, Sys 0 00:00:53  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	2276  -  Run Bytes Sent By Job
+	11020193  -  Run Bytes Received By Job
+	2276  -  Total Bytes Sent By Job
+	11020193  -  Total Bytes Received By Job
+	Partitionable Resources :       Usage  Request Allocated Assigned
+	   Cpus                 :        1.00        4         4 
+	   Disk (KB)            : 22266695    52428800  52428800 
+	   GPUs                 :        0           1         1 "GPU-ca48bd26"
+	   GpusMemory (MB)      :    16335                       
+	   IoHeavy              :                              0 
+	   Memory (MB)          :      860       32768     32768 
+	   TimeExecute (s)      :      932                       
+	   TimeSlotBusy (s)     :      933                       
+...

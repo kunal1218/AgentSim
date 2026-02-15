@@ -1,0 +1,9 @@
+[env] hostname=blengerichgpu4000
+[env] shard=0 num_shards=10 model=Qwen/Qwen2.5-7B-Instruct
+[env] input=filtered_pairs_10k.jsonl outdir=outputs
+Python 3.10.14
+torch: 2.2.2
+torch ok 2.10.0+cu128
+transformers ok 4.48.0
+[info] HF_HOME=hf_cache
+[load] model=Qwen/Qwen2.5-7B-Instruct
