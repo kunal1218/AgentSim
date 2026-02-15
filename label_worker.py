@@ -160,138 +160,162 @@ def iter_shard_jsonl(path: Path, shard_id: int, num_shards: int) -> Iterator[dic
 # Qwen prompt
 # ---------------------------
 def build_messages(row: dict, topk: int) -> List[Dict[str, str]]:
+    def sanitize_for_prompt(text: str) -> str:
+        t = text or ""
+        html_replacements = [
+            ("&gt;", ">"),
+            ("&lt;", "<"),
+            ("&amp;", "&"),
+            ("&quot;", '"'),
+            ("&#39;", "'"),
+            ("&nbsp;", " "),
+            ("& gt ;", ">"),
+            ("& lt ;", "<"),
+            ("& amp ;", "&"),
+            ("& quot ;", '"'),
+            ("& #39 ;", "'"),
+            ("& nbsp ;", " "),
+        ]
+        for src, dst in html_replacements:
+            t = t.replace(src, dst)
+        return normalize_text(t)
+
     post = row.get("post") or {}
-    subreddit = normalize_text(post.get("subreddit") or row.get("subreddit") or "")
-    title = normalize_text(post.get("title") or "")
-    text = normalize_text(post.get("text") or "")
-    comment = normalize_text(row.get("body") or row.get("comment") or "")
+    subreddit = sanitize_for_prompt(post.get("subreddit") or row.get("subreddit") or "")
+    title = sanitize_for_prompt(post.get("title") or "")
+    text = sanitize_for_prompt(post.get("text") or "")
+    comment = sanitize_for_prompt(row.get("body") or row.get("comment") or "")
 
     user_obj = {
-        "task": (
-            "Classify the intent of the GIVEN comment and produce a simplified, neutral-language "
-            "PARAPHRASE of the SAME comment."
-        ),
-
+        "task": "Produce one JSON object in two steps: Step A intent labeling, Step B strict paraphrase.",
+        "steps": {
+            "step_a": (
+                "Label intent of the GIVEN comment (not the post). Use the post context only when needed "
+                "to disambiguate likely intent."
+            ),
+            "step_b": (
+                "Write reply_proto as a strict paraphrase of the GIVEN comment only."
+            ),
+        },
+        "grounding_mode": "comment_only",
         "intents": INTENTS,
         "topk": topk,
-
-        "post": {
-            "subreddit": subreddit,
-            "title": title,
-            "text": text,
+        "input": {
+            "post_context_for_intent_only": {
+                "subreddit": subreddit,
+                "title": title,
+                "text": text,
+                "rule": "Never use post context as a source for reply_proto content.",
+            },
+            "comment": comment,
         },
-
-        "comment": comment,
-
-        # =========================
-        # HARD CONSTRAINTS (most important)
-        # =========================
-        "CRITICAL_RULES": [
-            "reply_proto MUST be a paraphrase of the ORIGINAL comment.",
-            "Keep the SAME meaning, SAME stance, SAME intent, and SAME emotional tone.",
-            "Do NOT add new facts, tools, names, or suggestions.",
-            "Do NOT change what action happened.",
-            "Do NOT generalize or invent examples.",
-            "This is NOT a new reply. It is a compressed rewrite of the SAME sentence.",
-            "Replace slang, memes, internet shorthand, and personality-specific phrasing with neutral wording.",
-            "Replace vulgar/sexual/profane words with direct but non-slang equivalents.",
-            "Do NOT sanitize or soften the emotion.",
-            "Hostility must remain hostile. Sarcasm must remain sarcastic. Negativity must remain negative.",
-            "Keep statements blunt and literal.",
-            "If any new detail appears that was not explicitly in the comment, the output is WRONG.",
+        "sanitization": [
+            "Before reasoning, decode common HTML escapes in inputs (&gt;, &lt;, &amp;, &quot;, &#39;, &nbsp;).",
+            "Normalize excessive spaces to single spaces.",
+            "If '>' quote markers are present, preserve them in reply_proto.",
         ],
-
-        # =========================
-        # Rewrite behavior
-        # =========================
-        "rewrite_rules": [
-            "Shorten and simplify.",
-            "Use plain, literal English only.",
-            "No slang or idioms.",
-            "No memes or cultural references.",
-            "No emojis.",
-            "No personality or stylistic flair.",
-            "No metaphors or jokes unless already present.",
-            "Prefer direct verbs (say, criticize, insult, suggest, perform, go, meet).",
-            "Prefer neutral vocabulary over creative wording.",
-            "Use as few sentences as needed to preserve ALL actions. Do NOT delete actions to shorten."
+        "critical_rules": [
+            "Output only one valid JSON object with the exact schema keys and no extras.",
+            "Grounding is comment_only: reply_proto may use only information in comment.",
+            "If comment uses deixis (e.g., 'that', 'this', 'it'), keep the deixis; do not resolve references.",
+            "Do not invent facts, entities, settings, subreddit lore, or external knowledge.",
+            "Keep original stance and pragmatic force while neutralizing slang wording.",
         ],
-
-        # =========================
-        # Output formatting
-        # =========================
-        "format_requirements": {
-            "json_only": True,
-            "intent_distribution": (
-                "MUST be a JSON array of objects like "
-                "{\"intent\": <string>, \"prob\": <number>} (NOT strings)."
-            ),
-            "prob_sum": "Probabilities should sum to approximately 1.0."
+        "copy_constraints": [
+            "stance invariant: support/oppose/neutral/mixed must match the comment's stance toward its target.",
+            "sentiment_polarity invariant: positive/negative/neutral polarity must be preserved.",
+            "sarcasm_flag invariant: sarcasm true/false must reflect the original comment.",
+            "speech_act invariant: question/request/assertion/command type must stay the same.",
+        ],
+        "banned_behaviors": [
+            "Do not write a new reply to the post; paraphrase the given comment only.",
+            "Do not add suggestions, advice, calls to action, or next steps not in the comment.",
+            "Do not add examples, analogies, or explanations not in the comment.",
+            "Do not add or change named entities, people, places, products, dates, or numbers.",
+            "Do not add subreddit names unless already present in the comment text.",
+            "Do not import facts from post text into reply_proto.",
+            "Do not output HTML escapes like '&gt;' in reply_proto when a character form is available.",
+            "Do not change a non-question into a question or vice versa.",
+        ],
+        "calibration": [
+            "intent_topk must contain exactly topk entries.",
+            "Each intent_topk item must be {\"intent\": <from intents>, \"prob\": <number in [0,1]>}.",
+            "Sum of intent_topk probs must be 1.0 +/- 0.02.",
+            "Use calibrated uncertainty: avoid overconfident spikes when intent is ambiguous.",
+        ],
+        "output_schema": {
+            "type": "object",
+            "keys_exactly": [
+                "reply_proto",
+                "intent_topk",
+                "stance",
+                "tone",
+                "sarcasm",
+                "rhetorical_question",
+                "confidence",
+                "violations",
+                "notes",
+            ],
+            "field_rules": {
+                "reply_proto": "string",
+                "intent_topk": "array of {intent, prob}",
+                "stance": ["support", "oppose", "neutral", "mixed"],
+                "tone": ["hostile", "neutral", "friendly", "sarcastic", "sad", "angry", "amused", "anxious", "other"],
+                "sarcasm": "bool",
+                "rhetorical_question": "bool",
+                "confidence": "number in [0,1]",
+                "violations": "array of strings",
+                "notes": "string",
+            },
         },
-
-        "fields_required": [
-            "reply_proto",
-            "intent_distribution",
-            "sarcasm",
-            "rhetorical_question",
-            "confidence",
-            "notes",
+        "self_check": [
+            "Step A done: intent_topk length == topk and probs sum within 1.0 +/- 0.02.",
+            "Step B done: reply_proto contains no information absent from comment.",
+            "Deixis preserved where unresolved in comment.",
+            "Final object has exactly the required keys and valid types.",
         ],
-
-        # =========================
-        # Self-check (greatly reduces hallucinations)
-        # =========================
-        "self_check_before_output": [
-            "Is reply_proto a paraphrase of the SAME sentence?",
-            "Did I avoid adding any new facts or suggestions?",
-            "Did I preserve the same sentiment/hostility/support?",
-            "Is the output strictly valid JSON?"
+        "in_distribution_examples": [
+            {
+                "input_comment": "> that take is wild",
+                "output_shape": {
+                    "reply_proto": "> that opinion is extreme",
+                    "sarcasm": False,
+                    "violations": [],
+                },
+                "why": "Quoted marker '>' is preserved.",
+            },
+            {
+                "input_comment": "yeah great idea, genius",
+                "output_shape": {
+                    "reply_proto": "Yes, that is definitely a great idea.",
+                    "tone": "sarcastic",
+                    "sarcasm": True,
+                },
+                "why": "Sarcasm remains sarcastic while wording is neutralized.",
+            },
+            {
+                "input_comment": "r/AskNYC already covered this yesterday",
+                "output_shape": {
+                    "reply_proto": "r/AskNYC already discussed this yesterday.",
+                    "violations": [],
+                },
+                "why": "Keeps existing subreddit mention; adds no new subreddit names.",
+            },
         ],
-
-        "examples": [
-            {
-            "original": "this tastes like crap lmao",
-            "reply_proto": "This tastes very bad."
-            },
-            {
-            "original": "he was screwing around with some random chick",
-            "reply_proto": "He was having casual sex with a woman he did not know."
-            },
-            {
-            "original": "yeah sure genius, that plan is totally gonna work",
-            "reply_proto": "Yes, that plan is obviously not going to work."
-            },
-            {
-            "original": "kick him out and let everyone see it",
-            "reply_proto": "Remove him publicly where others can see."
-            },
-            {
-            "original": "bro that story is boring as hell",
-            "reply_proto": "That story is extremely boring."
-            },
-            {
-            "original": "we should just meet up at the park or whatever",
-            "reply_proto": "We should meet at the park."
-            },
-            {
-            "original": "people keep whining about this dumb update",
-            "reply_proto": "People keep complaining about this update."
-            },
-            {
-            "original": "lol how did that junk even end up there",
-            "reply_proto": "How did that object end up there?"
-            }
-        ]
-
     }
 
     return [
         {
             "role": "system",
             "content": (
-                "You are a strict JSON generator. Output ONLY valid JSON. "
-                "No commentary, no markdown, no explanations.\n"
-                "Follow ALL CRITICAL_RULES exactly. If unsure, paraphrase conservatively."
+                "You are a strict JSON generator.\n"
+                "Return exactly one JSON object with keys: "
+                "reply_proto, intent_topk, stance, tone, sarcasm, rhetorical_question, confidence, violations, notes.\n"
+                "Do Step A then Step B in order:\n"
+                "Step A: label intent_topk for the GIVEN comment only.\n"
+                "Step B: write reply_proto as a strict paraphrase of the GIVEN comment only.\n"
+                "grounding_mode is comment_only: post context is for intent disambiguation only and NEVER for paraphrase.\n"
+                "No markdown, no prose outside JSON, no extra keys."
             ),
         },
         {
@@ -431,4 +455,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
